@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Generator</title>
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --primary-hover: #3a5a8c;
+            --secondary: #f8f9fa;
+            --dark: #343a40;
+            --light: #f8f9fa;
+            --danger: #dc3545;
+            --success: #28a745;
+            --border-radius: 6px;
+            --box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f4f8;
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 20px;
+        }
+        
+        .upload-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background-color: var(--secondary);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            flex-grow: 1;
+        }
+        
+        .file-input-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .file-input-button {
+            background-color: var(--secondary);
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        
+        .status {
+            margin-left: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .pairs-container {
+            background-color: var(--secondary);
+            padding: 20px;
+            border-radius: var(--border-radius);
+        }
+        
+        .pair {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .pair input {
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            flex: 1;
+        }
+        
+        .pair button {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .pair button:hover {
+            background-color: #bd2130;
+        }
+        
+        .pair button:disabled {
+            background-color: #e6e6e6;
+            color: #aaa;
+            cursor: not-allowed;
+        }
+        
+        .add-button {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        
+        .add-button:hover {
+            background-color: #218838;
+        }
+        
+        .generate-button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .generate-button:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        .download-link {
+            display: none;
+            background-color: var(--success);
+            color: white;
+            text-decoration: none;
+            padding: 12px 20px;
+            text-align: center;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .download-link:hover {
+            background-color: #218838;
+        }
+        
+        .coords {
+            width: 120px;
+        }
+        
+        .value {
+            flex: 1;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .process-status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            background-color: var(--secondary);
+            text-align: center;
+            display: none;
+        }
+        
+        .file-selected {
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+        
+        .file-name {
+            margin-left: 5px;
+            font-weight: 500;
+            color: var(--primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PDF Generator</h1>
+        
+        <div class="upload-section">
+            <div class="file-input-wrapper">
+                <span class="file-input-button">Choose PDF File</span>
+                <input type="file" id="pdf-file" accept=".pdf">
+            </div>
+            <div id="file-selected" class="file-selected" style="display: none;">
+                <span>Selected:</span>
+                <span id="file-name" class="file-name"></span>
+            </div>
+        </div>
+        
+        <h3>Add Text at Coordinates</h3>
+        <div class="pairs-container" id="pairs-container"></div>
+        <button onclick="addPair()" class="add-button">+ Add Another Coordinate</button>
+        
+        <button onclick="processFile()" class="generate-button">Generate PDF</button>
+        <div id="process-status" class="process-status"></div>
+        <a id="download-link" class="download-link">Download Modified PDF</a>
+    </div>
+    
+    <div class="footer">
+        PDF Generator Tool | Modify PDFs with custom text at specific coordinates
+    </div>
+
+    <script>
+        let fileInput = document.getElementById("pdf-file");
+        let fileSelected = document.getElementById("file-selected");
+        let fileName = document.getElementById("file-name");
+        let processStatus = document.getElementById("process-status");
+        let downloadLink = document.getElementById("download-link");
+        
+        fileInput.addEventListener("change", function() {
+            if (this.files.length > 0) {
+                fileName.textContent = this.files[0].name;
+                fileSelected.style.display = "flex";
+            } else {
+                fileSelected.style.display = "none";
+            }
+        });
+        
+        function addPair() {
+            let container = document.getElementById("pairs-container");
+            let count = container.children.length;
+
+            let pair = document.createElement("div");
+            pair.className = "pair";
+            pair.innerHTML = `
+                <input type="text" placeholder="X, Y" class="coords">
+                <input type="text" placeholder="Text to add" class="value">
+                <button type="button" onclick="removePair(this)">×</button>
+            `;
+
+            if (count === 0) {
+                pair.querySelector("button").disabled = true;
+            }
+            container.appendChild(pair);
+            updateRemoveButtons();
+        }
+
+        function removePair(button) {
+            let container = document.getElementById("pairs-container");
+            button.parentElement.remove();
+            updateRemoveButtons();
+        }
+
+        function updateRemoveButtons() {
+            let buttons = document.querySelectorAll(".pair button");
+            if (buttons.length === 1) {
+                buttons[0].disabled = true;
+            } else {
+                buttons.forEach(btn => btn.disabled = false);
+            }
+        }
+
+        function processFile() {
+            // Get file
+            let file = fileInput.files[0];
+            if (!file) {
+                alert("Please select a PDF file first.");
+                return;
+            }
+            
+            // Get coordinates
+            let pairs = document.querySelectorAll(".pair");
+            let coordinates = [];
+
+            pairs.forEach(pair => {
+                let coordsValue = pair.querySelector(".coords").value;
+                let textValue = pair.querySelector(".value").value;
+                
+                if (coordsValue && textValue) {
+                    let coords = coordsValue.split(",");
+                    
+                    if (coords.length === 2) {
+                        let x = parseFloat(coords[0].trim());
+                        let y = parseFloat(coords[1].trim());
+                        if (!isNaN(x) && !isNaN(y)) {
+                            coordinates.push({ coords: [x, y], value: textValue.trim() });
+                        }
+                    }
+                }
+            });
+            
+            if (coordinates.length === 0) {
+                alert("Please add at least one valid coordinate-text pair.");
+                return;
+            }
+            
+            // Disable generate button and show status
+            let generateButton = document.querySelector(".generate-button");
+            generateButton.textContent = "Processing...";
+            generateButton.disabled = true;
+            
+            processStatus.style.display = "block";
+            processStatus.textContent = "Uploading PDF...";
+            
+            // First upload the file
+            let formData = new FormData();
+            formData.append("pdf_file", file);
+            
+            fetch("/upload", { 
+                method: "POST", 
+                body: formData 
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Upload failed with status " + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data.filename) {
+                    throw new Error("No filename in upload response");
+                }
+                
+                // Now process the file
+                processStatus.textContent = "Generating PDF...";
+                
+                return fetch("/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        filename: data.filename, 
+                        coordinates: coordinates 
+                    })
+                });
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Generation failed with status " + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                generateButton.textContent = "Generate PDF";
+                generateButton.disabled = false;
+                
+                if (data.output_file) {
+                    processStatus.textContent = "PDF generated successfully!";
+                    processStatus.style.backgroundColor = "#d4edda";
+                    processStatus.style.color = "#155724";
+                    
+                    downloadLink.href = `/download/${data.output_file}`;
+                    downloadLink.textContent = "Download Modified PDF";
+                    downloadLink.style.display = "block";
+                } else {
+                    throw new Error("No output file in generation response");
+                }
+            })
+            .catch(error => {
+                generateButton.textContent = "Generate PDF";
+                generateButton.disabled = false;
+                
+                processStatus.textContent = "Error: " + error.message;
+                processStatus.style.backgroundColor = "#f8d7da";
+                processStatus.style.color = "#721c24";
+                
+                console.error("Error:", error);
+            });
+        }
+
+        window.onload = () => addPair();
+    </script>
+</body>
+</html>
